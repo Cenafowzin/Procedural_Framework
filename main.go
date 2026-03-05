@@ -19,18 +19,18 @@ func main() {
 	g.AddLayer("structures")
 	g.AddLayer("entities")
 
-	ctx := pipeline.NewContext(g, 55)
+	ctx := pipeline.NewContext(g, 200)
 
 	spawnX := g.Width / 2
 	spawnY := g.Height - 4
 
 	pipe := pipeline.NewPipeline().
-		// Base
 		AddStep(&terrain.Fill{Layer: "terrain", Tile: "floor"}).
 		AddStep(&terrain.FillBorder{Layer: "terrain", Tile: "mato_enraizado", Thickness: 2}).
-		// Spawn
-		AddStep(&placement.PlaceSpawn{Layer: "entities", Tile: "spawn", OffsetY: 3}).
-		// Estruturas — arena e desafio devem ficar longe do spawn
+		AddStep(&placement.PlacePoint{
+			Layer: "entities", Tile: "spawn",
+			AnchorX: "center", AnchorY: "bottom", OffsetY: -3,
+		}).
 		AddStep(&placement.PlaceStructures{
 			Layer: "structures",
 			Structures: []placement.StructureDef{
@@ -53,13 +53,11 @@ func main() {
 			AvoidLayer:  "terrain",
 			AvoidType:   "mato_enraizado",
 		}).
-		// Caminhos via A* — orgânicos mas que chegam no destino
 		AddStep(&paths.ConnectToStructures{
 			Layer:           "terrain",
 			Tile:            "path",
 			From:            paths.Point{X: spawnX, Y: spawnY},
 			StructuresLayer: "structures",
-			RandomWaypoints: 6,
 			Clearance:       3,
 			NoiseFactor:     4.0,
 			NoiseScale:      0.12,
@@ -68,13 +66,12 @@ func main() {
 				pipeline.LayerEmpty{Layer: "structures"},
 			},
 		}).
-		// Ramificações a partir dos caminhos existentes — quebra o padrão "star"
 		AddStep(&paths.BranchPaths{
 			SourceLayer:     "terrain",
 			SourceTile:      "path",
 			Layer:           "terrain",
 			Tile:            "path",
-			Branches:        2,
+			Branches:        3,
 			StructuresLayer: "structures",
 			Clearance:       3,
 			NoiseFactor:     3.5,
@@ -84,7 +81,19 @@ func main() {
 				pipeline.LayerEmpty{Layer: "structures"},
 			},
 		}).
-		// Vegetação com Perlin noise — só onde for floor e não for path
+		AddStep(&paths.BranchPaths{
+			SourceLayer: "terrain",
+			SourceTile:  "path",
+			Layer:       "terrain",
+			Tile:        "path",
+			Branches:    4,
+			NoiseFactor: 2.0,
+			NoiseScale:  0.12,
+			Conditions: []pipeline.Condition{
+				pipeline.LayerNot{Layer: "terrain", Type: "mato_enraizado"},
+				pipeline.LayerEmpty{Layer: "structures"},
+			},
+		}).
 		AddStep(&scatter.NoiseScatter{
 			Layer: "vegetation", Tile: "mato_alto",
 			Threshold: 0.52, Scale: 0.18,

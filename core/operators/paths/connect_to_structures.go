@@ -8,16 +8,15 @@ import (
 
 // ConnectToStructures varre o StructuresLayer, calcula o ponto de entrada de cada
 // estrutura (célula fora da borda, no lado que enfrenta From) e conecta via A*.
-// RandomWaypoints adiciona pontos aleatórios extras como destinos adicionais.
 // Clearance define quantas células o ponto de entrada fica fora da borda da estrutura.
 // Combine com LayerEmpty{Layer:"structures"} nas Conditions para impedir que o
 // caminho atravesse outras estruturas.
+// Para caminhos aleatórios sem destino, use BranchPaths com StructuresLayer vazio.
 type ConnectToStructures struct {
 	Layer           string
 	Tile            string
 	From            Point
 	StructuresLayer string
-	RandomWaypoints int
 	Clearance       int
 	NoiseFactor     float64
 	NoiseScale      float64
@@ -36,10 +35,6 @@ func (c *ConnectToStructures) Execute(ctx *pipeline.Context) error {
 	}
 
 	targets := entryPointsFrom(ctx, c.StructuresLayer, c.From, clearance)
-
-	for i := 0; i < c.RandomWaypoints; i++ {
-		targets = append(targets, randomPoint(ctx))
-	}
 
 	scale := c.NoiseScale
 	if scale <= 0 {

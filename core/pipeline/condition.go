@@ -74,6 +74,33 @@ func (c NotNearType) Check(ctx *Context, x, y int) bool {
 	return true
 }
 
+// LayerClear passa quando não há nenhuma célula não-vazia no layer indicado
+// dentro do raio Distance. Diferente de NotNearType, verifica qualquer conteúdo
+// independente do tipo — útil para manter distância de qualquer estrutura ou entidade.
+type LayerClear struct {
+	Layer    string
+	Distance int
+}
+
+func (c LayerClear) Check(ctx *Context, x, y int) bool {
+	layer := ctx.Grid.GetLayer(c.Layer)
+	if layer == nil {
+		return true
+	}
+	for dy := -c.Distance; dy <= c.Distance; dy++ {
+		for dx := -c.Distance; dx <= c.Distance; dx++ {
+			nx, ny := x+dx, y+dy
+			if nx < 0 || nx >= ctx.Grid.Width || ny < 0 || ny >= ctx.Grid.Height {
+				continue
+			}
+			if layer.Cells[ny][nx].Type != "" {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 // CheckAll retorna true se todos os conditions passarem para (x, y).
 func CheckAll(conditions []Condition, ctx *Context, x, y int) bool {
 	for _, c := range conditions {
