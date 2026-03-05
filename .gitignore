@@ -1,0 +1,27 @@
+# Binários
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Artefatos de build
+/bin/
+/dist/
+
+# Output gerado
+*.json
+*.png
+
+# Módulos Go
+vendor/
+
+# Ambiente
+.env
+.env.*
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
