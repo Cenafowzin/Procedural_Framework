@@ -3,6 +3,7 @@ package grid
 type Grid2D struct {
 	Width      int
 	Height     int
+	Seed       int64
 	Layers     map[string]*Layer
 	LayerOrder []string // preserva a ordem de inserção para renderização
 }
