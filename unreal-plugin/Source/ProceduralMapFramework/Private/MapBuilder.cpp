@@ -11,7 +11,6 @@ AMapBuilder::AMapBuilder()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	// Componente raiz invisível que serve de âncora para os filhos
 	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
 }
@@ -40,7 +39,6 @@ void AMapBuilder::BuildFromJson(const FString& MapJson)
 		return;
 	}
 
-	// Inicializa RNG com a seed do mapa para variantes determinísticas
 	FRandomStream Rng(bDeterministicVariants ? (int32)Map.Seed : FMath::Rand());
 
 	for (const FMapLayerData& Layer : Map.Layers)
@@ -55,7 +53,6 @@ void AMapBuilder::BuildFromJson(const FString& MapJson)
 
 void AMapBuilder::Clear()
 {
-	// Destroi actors spawned
 	for (AActor* Actor : SpawnedActors)
 	{
 		if (IsValid(Actor))
@@ -65,7 +62,6 @@ void AMapBuilder::Clear()
 	}
 	SpawnedActors.Empty();
 
-	// Remove os InstancedStaticMeshComponents
 	for (auto& Pair : MeshInstances)
 	{
 		if (IsValid(Pair.Value))
@@ -138,10 +134,8 @@ bool AMapBuilder::ParseMapJson(const FString& Json, FMapData& OutMap) const
 
 void AMapBuilder::ProcessLayer(const FMapLayerData& Layer, const FMapData& Map, FRandomStream& Rng)
 {
-	// Actors são spawnados uma vez por região contígua (ex: estrutura completa no centro)
 	SpawnActorRegions(Layer, Rng);
 
-	// Meshes são instanciados por célula (chão, vegetação, etc.)
 	for (int32 Row = 0; Row < Layer.Cells.Num(); ++Row)
 	{
 		const TArray<FMapCellData>& RowData = Layer.Cells[Row];
@@ -167,7 +161,6 @@ void AMapBuilder::SpawnActorRegions(const FMapLayerData& Layer, FRandomStream& R
 	if (NumRows == 0) return;
 	const int32 NumCols = Layer.Cells[0].Num();
 
-	// Marca células já processadas para não spawnar duas vezes
 	TArray<TArray<bool>> Visited;
 	Visited.SetNum(NumRows);
 	for (auto& Row : Visited) Row.SetNumZeroed(NumCols);
@@ -181,11 +174,9 @@ void AMapBuilder::SpawnActorRegions(const FMapLayerData& Layer, FRandomStream& R
 			const FString& TileType = Layer.Cells[Row][Col].Type;
 			if (TileType.IsEmpty()) continue;
 
-			// Só processa tipos que têm mapeamento de actor
 			TSubclassOf<AActor> ActorClass = Registry->GetActorClass(TileType, Rng);
 			if (!ActorClass) continue;
 
-			// BFS para encontrar toda a região contígua deste tipo
 			int32 MinCol = Col, MaxCol = Col, MinRow = Row, MaxRow = Row;
 
 			TQueue<TPair<int32,int32>> Queue;
@@ -204,7 +195,6 @@ void AMapBuilder::SpawnActorRegions(const FMapLayerData& Layer, FRandomStream& R
 				MinRow = FMath::Min(MinRow, R);
 				MaxRow = FMath::Max(MaxRow, R);
 
-				// 4-vizinhos
 				const TPair<int32,int32> Neighbors[] = {{C+1,R},{C-1,R},{C,R+1},{C,R-1}};
 				for (const auto& N : Neighbors)
 				{
@@ -217,7 +207,6 @@ void AMapBuilder::SpawnActorRegions(const FMapLayerData& Layer, FRandomStream& R
 				}
 			}
 
-			// Spawna 1 actor no centro da região
 			const FVector WorldCenter = RegionCenterToWorld(MinCol, MinRow, MaxCol, MaxRow);
 
 			FActorSpawnParameters Params;

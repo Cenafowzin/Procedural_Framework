@@ -13,7 +13,7 @@ struct FTileMeshMapping
 {
 	GENERATED_BODY()
 
-	// Tipo de tile exportado pelo Go (ex: "floor", "mato_enraizado")
+	// Tipo de tile exportado pelo Go (ex: "floor", "wall")
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Tile")
 	FString TileType;
 
@@ -49,13 +49,11 @@ struct FTileActorMapping
  * UTileRegistry é um Data Asset que mapeia strings de tipo de tile
  * para assets do Unreal (meshes ou actors).
  *
- * Equivalente ao TileRegistry.cs do adaptador Unity.
- *
  * Como criar:
  *   Content Browser → clique direito → Miscellaneous → Data Asset → TileRegistry
  */
 UCLASS(BlueprintType)
-class YOURGAME_API UTileRegistry : public UDataAsset
+class PROCEDURALMAPFRAMEWORK_API UTileRegistry : public UDataAsset
 {
 	GENERATED_BODY()
 

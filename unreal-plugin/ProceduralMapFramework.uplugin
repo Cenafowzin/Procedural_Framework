@@ -1,0 +1,24 @@
+{
+    "FileVersion": 3,
+    "Version": 1,
+    "VersionName": "1.0",
+    "FriendlyName": "Procedural Map Framework",
+    "Description": "Integração com o Procedural Map Framework (Go) para geração procedural de mapas via pipeline JSON.",
+    "Category": "Procedural Generation",
+    "CreatedBy": "Rodrigo Dubeux",
+    "CreatedByURL": "",
+    "DocsURL": "",
+    "MarketplaceURL": "",
+    "SupportURL": "",
+    "CanContainContent": true,
+    "IsBetaVersion": false,
+    "IsExperimentalVersion": false,
+    "Installed": false,
+    "Modules": [
+        {
+            "Name": "ProceduralMapFramework",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        }
+    ]
+}

@@ -30,7 +30,6 @@ TSubclassOf<AActor> UTileRegistry::GetActorClass(const FString& TileType, FRando
 	{
 		if (Mapping.TileType == TileType && Mapping.Variants.Num() > 0)
 		{
-			// Escolhe variante deterministicamente via Rng (alimentado pela seed do mapa)
 			const int32 Index = Rng.RandRange(0, Mapping.Variants.Num() - 1);
 			return Mapping.Variants[Index];
 		}

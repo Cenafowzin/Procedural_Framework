@@ -10,8 +10,6 @@ class AMapBuilder;
  * AMapGeneratorRuntime executa o binário Go (mapgen.exe) como subprocess,
  * passa a pipeline JSON via arquivo temporário e entrega o mapa ao AMapBuilder.
  *
- * Equivalente ao MapGeneratorRuntime.cs do adaptador Unity.
- *
  * Fluxo:
  *   1. Lê o arquivo de pipeline JSON (PipelineConfigPath)
  *   2. Substitui a seed se necessário
@@ -22,11 +20,11 @@ class AMapBuilder;
  *
  * Setup:
  *   - Coloque mapgen.exe em Content/MapGen/mapgen.exe
- *   - Coloque o .json da pipeline em Content/MapGen/cornfield_pipeline.json
+ *   - Coloque o .json da pipeline em Content/MapGen/<pipeline>.json
  *   - Crie um Actor AMapGeneratorRuntime na cena e configure as referências
  */
 UCLASS()
-class YOURGAME_API AMapGeneratorRuntime : public AActor
+class PROCEDURALMAPFRAMEWORK_API AMapGeneratorRuntime : public AActor
 {
 	GENERATED_BODY()
 
@@ -35,8 +33,8 @@ public:
 
 	// ── Configuração ──────────────────────────────────────────────────────────
 
-	// Caminho para o arquivo JSON da pipeline, relativo a Content/
-	// Ex: "MapGen/cornfield_pipeline.json"
+	// Caminho para o arquivo JSON da pipeline, relativo ao Content/ do plugin.
+	// Para usar um arquivo do seu projeto, prefixe com "project:" ex: "project:MapGen/minha_pipeline.json"
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MapGen|Pipeline")
 	FString PipelineConfigPath = TEXT("MapGen/cornfield_pipeline.json");
 
@@ -48,8 +46,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MapGen|Scene")
 	TObjectPtr<AMapBuilder> Builder;
 
-	// Caminho para mapgen.exe, relativo a Content/
-	// Ex: "MapGen/mapgen.exe"
+	// Caminho para mapgen.exe, relativo ao Content/ do plugin.
+	// Para usar um executável do seu projeto, prefixe com "project:" ex: "project:MapGen/mapgen.exe"
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="MapGen|Binario")
 	FString ExecutablePath = TEXT("MapGen/mapgen.exe");
 
@@ -67,9 +65,6 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	// Lê e retorna o JSON da pipeline (com seed substituída)
 	bool PrepareConfig(int64 OverrideSeed, FString& OutConfigJson) const;
-
-	// Executa mapgen.exe com a config e retorna o JSON do mapa
 	bool RunMapgen(const FString& ConfigJson, FString& OutMapJson) const;
 };

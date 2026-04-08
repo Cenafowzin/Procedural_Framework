@@ -9,6 +9,21 @@
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
+#include "Interfaces/IPluginManager.h"
+
+// Resolve um caminho relativo: prefixo "project:" usa Content/ do projeto,
+// sem prefixo usa Content/ do plugin (padrão).
+static FString ResolvePath(const FString& RelativePath)
+{
+	if (RelativePath.StartsWith(TEXT("project:")))
+	{
+		return FPaths::Combine(FPaths::ProjectContentDir(), RelativePath.Mid(8));
+	}
+
+	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("ProceduralMapFramework"));
+	const FString Base = Plugin.IsValid() ? Plugin->GetContentDir() : FPaths::ProjectContentDir();
+	return FPaths::Combine(Base, RelativePath);
+}
 
 AMapGeneratorRuntime::AMapGeneratorRuntime()
 {
@@ -56,8 +71,7 @@ void AMapGeneratorRuntime::GenerateWithSeed(int64 OverrideSeed)
 
 bool AMapGeneratorRuntime::PrepareConfig(int64 OverrideSeed, FString& OutConfigJson) const
 {
-	// Resolve caminho relativo a Content/
-	const FString ConfigPath = FPaths::Combine(FPaths::ProjectContentDir(), PipelineConfigPath);
+	const FString ConfigPath = ResolvePath(PipelineConfigPath);
 
 	FString RawJson;
 	if (!FFileHelper::LoadFileToString(RawJson, *ConfigPath))
@@ -66,7 +80,6 @@ bool AMapGeneratorRuntime::PrepareConfig(int64 OverrideSeed, FString& OutConfigJ
 		return false;
 	}
 
-	// Se OverrideSeed != 0, substitui a seed no JSON
 	if (OverrideSeed != 0)
 	{
 		TSharedPtr<FJsonObject> Config;
@@ -92,16 +105,13 @@ bool AMapGeneratorRuntime::PrepareConfig(int64 OverrideSeed, FString& OutConfigJ
 
 bool AMapGeneratorRuntime::RunMapgen(const FString& ConfigJson, FString& OutMapJson) const
 {
-	// Resolve caminho do executável
-	const FString ExePath = FPaths::Combine(FPaths::ProjectContentDir(), ExecutablePath);
+	const FString ExePath = ResolvePath(ExecutablePath);
 	if (!FPaths::FileExists(ExePath))
 	{
 		UE_LOG(LogTemp, Error, TEXT("[MapGen] mapgen.exe não encontrado: %s"), *ExePath);
 		return false;
 	}
 
-	// Escreve a config em arquivo temporário
-	// (FPlatformProcess::ExecProcess não suporta stdin diretamente)
 	const FString TempConfig = FPaths::Combine(
 		FPaths::ProjectSavedDir(),
 		TEXT("MapGen_temp_config.json")
@@ -113,7 +123,6 @@ bool AMapGeneratorRuntime::RunMapgen(const FString& ConfigJson, FString& OutMapJ
 		return false;
 	}
 
-	// Executa mapgen.exe -config <tempfile>
 	const FString Params = FString::Printf(TEXT("-config \"%s\""), *TempConfig);
 	int32 ExitCode = 0;
 	FString StdErr;
@@ -126,7 +135,6 @@ bool AMapGeneratorRuntime::RunMapgen(const FString& ConfigJson, FString& OutMapJ
 		&StdErr
 	);
 
-	// Limpa arquivo temporário
 	IFileManager::Get().Delete(*TempConfig);
 
 	if (!bSuccess || ExitCode != 0)

@@ -11,8 +11,6 @@ class UInstancedStaticMeshComponent;
 /**
  * AMapBuilder constrói a cena do Unreal a partir do JSON do mapa.
  *
- * Equivalente ao MapBuilder.cs do adaptador Unity.
- *
  * Estratégia de renderização:
  *   - Tiles de superfície (mesh): UInstancedStaticMeshComponent por tipo
  *     → Performance: milhares de instâncias com 1 draw call por tipo
@@ -24,7 +22,7 @@ class UInstancedStaticMeshComponent;
  *   Unreal: X = -col * TileSize, Y = -row * TileSize, Z = BaseZ
  */
 UCLASS()
-class YOURGAME_API AMapBuilder : public AActor
+class PROCEDURALMAPFRAMEWORK_API AMapBuilder : public AActor
 {
 	GENERATED_BODY()
 
