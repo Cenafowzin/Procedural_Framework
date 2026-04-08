@@ -2,7 +2,7 @@
 set -e
 
 UNREAL_CONTENT="unreal-plugin/Content/MapGen"
-UNITY_STREAMING="unity-adapter/StreamingAssets/MapGen"
+UNITY_STREAMING="unity-package/StreamingAssets~/MapGen"
 # GODOT_CONTENT="godot-addon/bin"
 
 usage() {
