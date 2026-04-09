@@ -43,6 +43,16 @@ struct FTileActorMapping
 	// Um ou mais Blueprints/classes de Actor como variantes
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Actor")
 	TArray<TSubclassOf<AActor>> Variants;
+
+	// Se true, spawna um actor por célula em vez de um por região contígua.
+	// Use para vegetação/entidades. Deixe false para estruturas.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Actor")
+	bool bSpawnPerCell = false;
+
+	// Se true, não spawna actor — apenas registra a posição em MapBuilder.GetSpawnPositions().
+	// Use para pontos de spawn do player.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Actor")
+	bool bIsSpawnPoint = false;
 };
 
 /**
@@ -74,6 +84,12 @@ public:
 
 	// Retorna uma classe de Actor (variante escolhida deterministicamente via Rng), ou nullptr
 	TSubclassOf<AActor> GetActorClass(const FString& TileType, FRandomStream& Rng) const;
+
+	// Retorna true se o tipo deve spawnar um actor por célula (em vez de por região)
+	bool IsPerCell(const FString& TileType) const;
+
+	// Retorna true se o tipo é um ponto de spawn do player (não spawna actor)
+	bool IsSpawnPoint(const FString& TileType) const;
 
 	// Retorna true se o tipo tem mapeamento de mesh OU de actor
 	bool HasMapping(const FString& TileType) const;

@@ -37,6 +37,30 @@ TSubclassOf<AActor> UTileRegistry::GetActorClass(const FString& TileType, FRando
 	return nullptr;
 }
 
+bool UTileRegistry::IsPerCell(const FString& TileType) const
+{
+	for (const FTileActorMapping& Mapping : ActorMappings)
+	{
+		if (Mapping.TileType == TileType)
+		{
+			return Mapping.bSpawnPerCell;
+		}
+	}
+	return false;
+}
+
+bool UTileRegistry::IsSpawnPoint(const FString& TileType) const
+{
+	for (const FTileActorMapping& Mapping : ActorMappings)
+	{
+		if (Mapping.TileType == TileType)
+		{
+			return Mapping.bIsSpawnPoint;
+		}
+	}
+	return false;
+}
+
 bool UTileRegistry::HasMapping(const FString& TileType) const
 {
 	for (const FTileMeshMapping& M : MeshMappings)

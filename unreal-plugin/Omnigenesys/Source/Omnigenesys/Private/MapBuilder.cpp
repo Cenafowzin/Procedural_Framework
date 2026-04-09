@@ -51,6 +51,11 @@ void AMapBuilder::BuildFromJson(const FString& MapJson)
 		SpawnedActors.Num(), MeshInstances.Num());
 }
 
+TArray<FVector> AMapBuilder::GetSpawnPositions() const
+{
+	return SpawnPositions;
+}
+
 void AMapBuilder::Clear()
 {
 	for (AActor* Actor : SpawnedActors)
@@ -61,6 +66,7 @@ void AMapBuilder::Clear()
 		}
 	}
 	SpawnedActors.Empty();
+	SpawnPositions.Empty();
 
 	for (auto& Pair : MeshInstances)
 	{
@@ -177,6 +183,30 @@ void AMapBuilder::SpawnActorRegions(const FMapLayerData& Layer, FRandomStream& R
 			TSubclassOf<AActor> ActorClass = Registry->GetActorClass(TileType, Rng);
 			if (!ActorClass) continue;
 
+			// Spawn point: apenas registra a posição, não spawna actor
+			if (Registry->IsSpawnPoint(TileType))
+			{
+				Visited[Row][Col] = true;
+				SpawnPositions.Add(FVector(Col * TileSize, Row * TileSize, BaseZ));
+				continue;
+			}
+
+			// Per-cell: spawna um actor por célula, sem agrupar regiões
+			if (Registry->IsPerCell(TileType))
+			{
+				Visited[Row][Col] = true;
+				const FVector CellOrigin(Col * TileSize, Row * TileSize, BaseZ);
+				FActorSpawnParameters Params;
+				Params.Owner = this;
+				AActor* Spawned = GetWorld()->SpawnActor<AActor>(ActorClass, CellOrigin, FRotator::ZeroRotator, Params);
+				if (Spawned)
+				{
+					SpawnedActors.Add(Spawned);
+				}
+				continue;
+			}
+
+			// Por região: flood fill e spawna um actor no centro da região
 			int32 MinCol = Col, MaxCol = Col, MinRow = Row, MaxRow = Row;
 
 			TQueue<TPair<int32,int32>> Queue;
@@ -214,7 +244,6 @@ void AMapBuilder::SpawnActorRegions(const FMapLayerData& Layer, FRandomStream& R
 			AActor* Spawned = GetWorld()->SpawnActor<AActor>(ActorClass, WorldCenter, FRotator::ZeroRotator, Params);
 			if (Spawned)
 			{
-				Spawned->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
 				SpawnedActors.Add(Spawned);
 			}
 		}
@@ -223,14 +252,14 @@ void AMapBuilder::SpawnActorRegions(const FMapLayerData& Layer, FRandomStream& R
 
 FVector AMapBuilder::TileToWorld(int32 Col, int32 Row) const
 {
-	return FVector(-Col * TileSize, -Row * TileSize, BaseZ);
+	return FVector((Col + 0.5f) * TileSize, (Row + 0.5f) * TileSize, BaseZ);
 }
 
 FVector AMapBuilder::RegionCenterToWorld(int32 MinCol, int32 MinRow, int32 MaxCol, int32 MaxRow) const
 {
 	const float CenterCol = (MinCol + MaxCol) * 0.5f;
 	const float CenterRow = (MinRow + MaxRow) * 0.5f;
-	return FVector(-(CenterCol - 0.5f) * TileSize, -(CenterRow - 0.5f) * TileSize, BaseZ);
+	return FVector((CenterCol + 0.5f) * TileSize, (CenterRow + 0.5f) * TileSize, BaseZ);
 }
 
 UInstancedStaticMeshComponent* AMapBuilder::GetOrCreateMeshComponent(

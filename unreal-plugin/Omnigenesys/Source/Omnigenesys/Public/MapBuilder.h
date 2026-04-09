@@ -21,7 +21,7 @@ class UInstancedStaticMeshComponent;
  *   Go:    (0,0) = canto superior esquerdo, Y cresce para baixo
  *   Unreal: X = -col * TileSize, Y = -row * TileSize, Z = BaseZ
  */
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class OMNIGENESYS_API AMapBuilder : public AActor
 {
 	GENERATED_BODY()
@@ -57,6 +57,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category="MapBuilder")
 	void Clear();
 
+	// Retorna as posições de spawn coletadas durante o build
+	UFUNCTION(BlueprintCallable, Category="MapBuilder")
+	TArray<FVector> GetSpawnPositions() const;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -64,6 +68,9 @@ private:
 	// Actors spawned para estruturas/entidades
 	UPROPERTY()
 	TArray<TObjectPtr<AActor>> SpawnedActors;
+
+	// Posições de spawn coletadas durante o build
+	TArray<FVector> SpawnPositions;
 
 	// Instanced mesh components criados (um por tipo de tile com mesh)
 	UPROPERTY()

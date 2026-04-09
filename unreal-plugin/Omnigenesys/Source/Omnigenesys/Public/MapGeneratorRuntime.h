@@ -23,7 +23,7 @@ class AMapBuilder;
  *   - Coloque o .json da pipeline em Content/MapGen/<pipeline>.json
  *   - Crie um Actor AMapGeneratorRuntime na cena e configure as referências
  */
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class OMNIGENESYS_API AMapGeneratorRuntime : public AActor
 {
 	GENERATED_BODY()
